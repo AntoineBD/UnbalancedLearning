@@ -23,3 +23,5 @@ createDataset <- function()
   kddcup.dataset$attack_type <- as.factor(gsub(".$","",kddcup.dataset$attack_type))
   return(kddcup.dataset)
   }
+
+
