@@ -262,7 +262,7 @@ ADASYN = function(data, var_pred, d_th, beta, K){
     for( i in 1:ms){
       
       ind_knn[i,] = knn.index.dist(data, Obs_classe_min[i,],  k = K,
-                       transf_categ_cols = TRUE)$test_knn_idx
+                       transf_categ_cols = FALSE)$test_knn_idx
       
       Delta[i] = sum(ind_knn[i,] %in% ind_classe_maj) # Classe maj ou min ?
     }
@@ -327,11 +327,23 @@ ADASYN = function(data, var_pred, d_th, beta, K){
 
 ## ######################### Test fct ############################ ##
 
-u = DATA.svm[sample(1:nrow(DATA.svm)),-c(5,8)]
+# u = DATA.svm[sample(1:nrow(DATA.svm)),-c(2,5,8)]
+# 
+# u = u[1:5000,]
+# 
+# u_val = u[3800:5000,]
+# 
+# u = u[1:3799,]
 
-u_val = u[3001:4251,]
+data = rbind(u,u_val)
 
-u = u[1:3000,]
+write.table(data, "mydata.txt", sep=",")
+
+v = read.table(file = "mydata.txt", sep=",")
+
+v_val = v[3800:5000,]
+
+v = v[1:3799,]
 
 Mod_SVM = svm(connection_type~., data = u, kernel="linear")
 
@@ -373,4 +385,28 @@ OBS[OBS == 'bad'] = 0
 
 (sum(Pred == OBS))/length(Pred)
 
-Gmean = measureGMEAN(OBS, Pred, 1, 0)
+Gmean2 = measureGMEAN(OBS, Pred, 1, 0)
+
+
+##################################################################
+
+P_2 = ADAS(u[,-ncol(u)],u[,ncol(u)],K = 10)
+
+Mod_SVM = svm(class~., data = P_2$data, kernel="linear", type='C')
+
+Pred = predict(Mod_SVM, u_val[,-ncol(u_val)])
+
+
+### Matrice de confusion et pourcentage de bonnes predictions.
+
+Pred = as.character(Pred)
+Pred[Pred == 'good'] = 1
+Pred[Pred == 'bad'] = 0
+
+OBS = as.character(u_val[,ncol(u_val)])
+OBS[OBS == 'good'] = 1
+OBS[OBS == 'bad'] = 0
+
+(sum(Pred == OBS))/length(Pred)
+
+Gmean3 = measureGMEAN(OBS, Pred, 1, 0)
