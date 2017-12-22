@@ -17,8 +17,10 @@ library(KernelKnn)
 library("caret")
 library("pROC")
 
-library(tree)
+library(rpart)
 library(FNN)
+
+
 
 
 #### Fonction d'importation des données ####
