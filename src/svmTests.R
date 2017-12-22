@@ -33,18 +33,17 @@ OBS = test.data2$connection_type
 
 
 #### UNsmoted data ####
-unsmoted.model.fit <- svm( connection_type ~ ., data = train.data, kernel ='linear')
+unsmoted.model.fit <- svm( connection_type ~ ., data = train.data, kernel ='linear',probability=TRUE)
 ## assessing
 unsmoted.pred <- predict(unsmoted.model.fit, newdata = test.data)
 confusionMatrix(data = unsmoted.pred, reference = test.data$connection_type)
 ## ROC curve
-unsmoted.probs <- predict(unsmoted.model.fit,newdata =  test.data,
-                          type = "prob")
-unsmoted.roc <- roc(predictor = unsmoted.probs$bad, response = test.data$connection_type,
+unsmoted.probs <- attr(predict(unsmoted.model.fit,newdata =  test.data,probability=TRUE), "probabilities")
+unsmoted.roc <- roc(predictor = unsmoted.probs[,1], response = test.data$connection_type,
                     levels = rev(levels(test.data$connection_type)))
 
-AUC = as.numeric(unsmoted.roc$auc) # Area under the curve : 0.9293
-plot(unsmoted.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA)
+AUC = as.numeric(unsmoted.roc$auc)
+plot(unsmoted.roc, main = "svm ROC", xlim = c(1,0), ylim = c(0,1), asp = NA)
 
 
 unsmoted.pred = as.character(unsmoted.pred)
@@ -77,17 +76,18 @@ custom.smote <- smote(target = "connection_type", data = train.data)
 custom.smote[,"connection_type"] <- factor(custom.smote[, "connection_type"],
                                            levels = 1:nlevels(kdd.data[, "connection_type"]),
                                            labels = levels(kdd.data[, "connection_type"]))
-custom.smoted.fit <- svm( connection_type ~ ., data = custom.smote, kernel ='linear')
+custom.smoted.fit <- svm( connection_type ~ ., data = custom.smote, kernel ='linear',decision.values = TRUE, probability = TRUE)
 ## assessing
 custom.smoted.pred <- predict(custom.smoted.fit, newdata = test.data)
 confusionMatrix(data = custom.smoted.pred, reference = test.data$connection_type)
 ## ROC curve
-custom.smoted.probs <- predict(custom.smoted.fit,newdata =  test.data,
-                               type = "prob")
-custom.smoted.roc <- roc(predictor = custom.smoted.probs$bad, response = test.data$connection_type,
-                         levels = rev(levels(test.data$connection_type)))
-AUC_SMOTE = as.numeric(custom.smoted.roc$auc) # Area under the curve : 0.9286
-plot(custom.smoted.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col ='blue')
+custom.smoted.probs <- attr(predict(custom.smoted.fit,newdata =  test.data,probability=TRUE), "probabilities")
+custom.smoted.roc <- roc(predictor = custom.smoted.probs[,1], response = test.data$connection_type,
+                        levels = rev(levels(test.data$connection_type)))
+
+
+AUC_SMOTE = as.numeric(custom.smoted.roc$auc)
+plot(custom.smoted.roc, main = "svm ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col ='blue')
 
 custom.smoted.pred = as.character(custom.smoted.pred)
 custom.smoted.pred[custom.smoted.pred == 'good'] = 1
@@ -109,6 +109,10 @@ prop.table(table(custom.smote$connection_type))
 
 barplot(sort(table(custom.smote$connection_type), decreasing = TRUE))
 
+
+
+
+
 ##### Borderline-smote #####
 
 
@@ -122,17 +126,18 @@ custom.border$connection_type[custom.border$connection_type == '1'] = 'good'
 custom.border$connection_type[custom.border$connection_type == '0'] = 'bad'
 custom.border$connection_type = as.factor(custom.border$connection_type)
 
-custom.border.fit <- svm(connection_type ~ ., data = custom.border, kernel = 'linear')
+custom.border.fit <- svm(connection_type ~ ., data = custom.border, kernel = 'linear',probability=TRUE)
 ## assessing
 custom.border.pred <- predict(custom.border.fit, newdata = test.data2)
 confusionMatrix(data = custom.border.pred, reference = test.data$connection_type)
 ## ROC curve
-custom.border.probs <- predict(custom.border.fit,newdata =  test.data,
-                               type = "prob")
-custom.border.roc <- roc(predictor = custom.border.probs$bad, response = test.data$connection_type,
+custom.border.probs <- attr(predict(custom.border.fit,newdata =  test.data,probability=TRUE), "probabilities")
+custom.border.roc <- roc(predictor = custom.border.probs[,1], response = test.data$connection_type,
                          levels = rev(levels(test.data$connection_type)))
+
+
 AUC_BORDER = as.numeric(custom.border.roc$auc)
-plot(custom.border.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col='red')
+plot(custom.border.roc, main = "svm ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col='red')
 
 custom.border.pred = as.character(custom.border.pred)
 custom.border.pred[custom.border.pred == 'good'] = 1
@@ -155,22 +160,26 @@ prop.table(table(custom.border$connection_type))
 barplot(sort(table(custom.border$connection_type), decreasing = TRUE))
 
 
+
+
+
 ##### ADASYN data ####
 
 custom.adasyn <- ADASYN(train.data[,-ncol(train.data)],train.data[,ncol(train.data)],0.75,1,10)
 
 custom.adasyn.fit <- svm(connection_type ~ ., data = data.frame(custom.adasyn$data,connection_type = custom.adasyn$y),
-                           kernel = 'linear')
+                           kernel = 'linear',probability=TRUE)
 ## assessing
 custom.adasyn.pred <- predict(custom.adasyn.fit, newdata = test.data)
 confusionMatrix(data = custom.adasyn.pred, reference = test.data$connection_type)
 ## ROC curve
-custom.adasyn.probs <- predict(custom.smoted.fit,newdata =  test.data,
-                               type = "prob")
-custom.adasyn.roc <- roc(predictor = custom.adasyn.probs$bad, response = test.data$connection_type,
+custom.adasyn.probs <- attr(predict(custom.adasyn.fit,newdata =  test.data,probability=TRUE), "probabilities")
+custom.adasyn.roc <- roc(predictor = custom.adasyn.probs[,1], response = test.data$connection_type,
                          levels = rev(levels(test.data$connection_type)))
+
+
 AUC_ADASYN = as.numeric(custom.adasyn.roc$auc)
-plot(custom.adasyn.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col = 'green')
+plot(custom.adasyn.roc, main = "svm ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col = 'green')
 
 
 custom.adasyn.pred = as.character(custom.adasyn.pred)
