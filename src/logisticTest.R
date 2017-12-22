@@ -71,20 +71,37 @@ plot(custom.smoted.roc, main = "logistic regression ROC")
 
 ##### Borderline-smote #####
 
-custom.border <- BorderLineSMOTE1(kdd.data, kdd.data$connection_type, K=3)
-custom.border[,"connection_type"] <- factor(custom.border[, "connection_type"],
-                                           levels = 1:nlevels(kdd.data[, "connection_type"]),
-                                           labels = levels(kdd.data[, "connection_type"]))
-custom.border.fit <- train( connection_type ~ ., data = custom.border,
+kdd.data2 = kdd.data
+
+kdd.data2$connection_type = as.character(kdd.data2$connection_type)
+kdd.data2$connection_type[kdd.data2$connection_type == 'good'] = 1
+kdd.data2$connection_type[kdd.data2$connection_type == 'bad'] = 0
+kdd.data2$connection_type = as.numeric(kdd.data2$connection_type)
+
+train.data2 = kdd.data2[3800:5000,]
+
+test.data2 = kdd.data2[1:3799,]
+
+custom.border <- BorderLineSMOTE1(test.data2, test.data2$connection_type, K=3)
+# custom.border[,"connection_type"] <- factor(custom.border[, "connection_type"],
+#                                            levels = 1:nlevels(as.factor(kdd.data[, "connection_type"])),
+#                                            labels = levels(as.factor(kdd.data[, "connection_type"])))
+
+custom.border$connection_type = as.character(custom.border$connection_type)
+custom.border$connection_type[custom.border$connection_type == '1'] = 'good'
+custom.border$connection_type[custom.border$connection_type == '0'] = 'bad'
+custom.border$connection_type = as.numeric(custom.border$connection_type)
+
+custom.border.fit <- train(connection_type ~ ., data = custom.border,
                             method = "glm", trControl = fitControl, metric = "ROC")
 ## assessing
-custom.border.pred <- predict(custom.border.fit, newdata = test.data)
-confusionMatrix(data = custom.border.pred, reference = test.data$connection_type)
+custom.border.pred <- predict(custom.border.fit, newdata = test.data2)
+confusionMatrix(data = custom.border.pred, reference = test.data2$connection_type)
 ## ROC curve
-custom.border.probs <- predict(custom.border.fit,newdata =  test.data,
+custom.border.probs <- predict(custom.border.fit,newdata =  test.data2,
                                type = "prob")
-custom.border.roc <- roc(predictor = custom.border.probs$bad, response = test.data$connection_type,
-                         levels = rev(levels(test.data$connection_type)))
+custom.border.roc <- roc(predictor = custom.border.probs$bad, response = test.data2$connection_type,
+                         levels = rev(levels(test.data2$connection_type)))
 custom.border.roc$auc # Area under the curve : 0.9286
 plot(custom.border.roc, main = "logistic regression ROC")
 
