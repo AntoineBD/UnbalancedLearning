@@ -22,6 +22,18 @@ train.data = kdd.data[3800:5000,]
 test.data = kdd.data[1:3799,]
 
 
+kdd.data2 = kdd.data
+
+kdd.data2$connection_type = as.character(kdd.data2$connection_type)
+kdd.data2$connection_type[kdd.data2$connection_type == 'good'] = 1
+kdd.data2$connection_type[kdd.data2$connection_type == 'bad'] = 0
+kdd.data2$connection_type = as.numeric(kdd.data2$connection_type)
+
+train.data2 = kdd.data2[3800:5000,]
+
+test.data2 = kdd.data2[1:3799,]
+
+
 ## 10-fold CV
 fitControl <- trainControl(
   method = "repeatedcv",
@@ -45,6 +57,20 @@ unsmoted.roc <- roc(predictor = unsmoted.probs$bad, response = test.data$connect
 unsmoted.roc$auc # Area under the curve : 0.9293
 plot(unsmoted.roc, main = "logistic regression ROC")
 
+
+Pred = predict(Mod_SVM, data_val[,-ncol(data_val)])
+
+unsmoted.pred = as.character(unsmoted.pred)
+unsmoted.pred[unsmoted.pred == 'good'] = 1
+unsmoted.pred[unsmoted.pred == 'bad'] = 0
+
+OBS = as.character(data_val[,ncol(data_val)])
+OBS[OBS == 'good'] = 1
+OBS[OBS == 'bad'] = 0
+
+P_pred = (sum(Pred == OBS))/length(Pred)
+
+Gmean = measure_GMEAN(OBS, Pred, 1, 0)
 
 
 ##### custom smoted data ####
@@ -71,14 +97,21 @@ plot(custom.smoted.roc, main = "logistic regression ROC")
 
 ##### Borderline-smote #####
 
-custom.border <- BorderLineSMOTE1(kdd.data, kdd.data$connection_type, K=3)
-custom.border[,"connection_type"] <- factor(custom.border[, "connection_type"],
-                                           levels = 1:nlevels(kdd.data[, "connection_type"]),
-                                           labels = levels(kdd.data[, "connection_type"]))
-custom.border.fit <- train( connection_type ~ ., data = custom.border,
+
+custom.border <- BorderLineSMOTE1(test.data2, test.data2$connection_type, K=3)
+# custom.border[,"connection_type"] <- factor(custom.border[, "connection_type"],
+#                                            levels = 1:nlevels(as.factor(kdd.data[, "connection_type"])),
+#                                            labels = levels(as.factor(kdd.data[, "connection_type"])))
+
+custom.border$connection_type = as.character(custom.border$connection_type)
+custom.border$connection_type[custom.border$connection_type == '1'] = 'good'
+custom.border$connection_type[custom.border$connection_type == '0'] = 'bad'
+custom.border$connection_type = as.factor(custom.border$connection_type)
+
+custom.border.fit <- train(connection_type ~ ., data = custom.border,
                             method = "glm", trControl = fitControl, metric = "ROC")
 ## assessing
-custom.border.pred <- predict(custom.border.fit, newdata = test.data)
+custom.border.pred <- predict(custom.border.fit, newdata = test.data2)
 confusionMatrix(data = custom.border.pred, reference = test.data$connection_type)
 ## ROC curve
 custom.border.probs <- predict(custom.border.fit,newdata =  test.data,

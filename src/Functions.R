@@ -487,5 +487,11 @@ BorderLineSMOTE1 <-function (data, target, K = 5, C = 5, dupSize = 0)
   newData = rbind(minorityData, syntheticData, majorityData)
   rownames(newData) = NULL
   
+  newData[,(ncol(newData)-1)] = newData[,ncol(newData)]
+  
+  newData = newData[,-ncol(newData)]
+  
+  newData[,ncol(newData)] = as.factor(newData[,ncol(newData)])
+  
   return(newData)
 }
