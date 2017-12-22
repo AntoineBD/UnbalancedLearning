@@ -39,3 +39,7 @@ Pred = predict(arbre, data[,-ncol(data)])
 ######################## orderlineSMOTE  ####################################
 
 result <- BorderLineSMOTE1(data, data$connection_type, K=3)
+
+
+
+

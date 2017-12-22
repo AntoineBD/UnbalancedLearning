@@ -131,6 +131,11 @@ measure_TN = function(obs, pred, negative) {
   sum(obs == pred & pred == negative)
 }
 
+##### Mesure F #####
+
+F_Measure = function(rappel,precision,beta = 1){
+  (1 + beta^2)*rappel*precision / beta^2*(rappel+precision)
+}
 
 
 #### Fonction adasyn #####

@@ -7,19 +7,12 @@ rm(list = ls())
 
 source("src/Functions.R", local = TRUE)
 
-# kdd.data <- read.table("data/mydata.txt", header = TRUE, sep = ",")
-# ## data partition
-# trainIndex <- createDataPartition(kdd.data$connection_type, p = 0.8, 
-#                                   list = FALSE, 
-#                                   times = 1)
-# train.data <- kdd.data[trainIndex,] 
-# test.data <- kdd.data[-trainIndex,]
 
 kdd.data = read.table(file = "data/mydata.txt", sep=",")
 
-train.data = kdd.data[3800:5000,]
+test.data = kdd.data[3800:5000,]
 
-test.data = kdd.data[1:3799,]
+train.data = kdd.data[1:3799,]
 
 
 kdd.data2 = kdd.data
@@ -29,9 +22,11 @@ kdd.data2$connection_type[kdd.data2$connection_type == 'good'] = 1
 kdd.data2$connection_type[kdd.data2$connection_type == 'bad'] = 0
 kdd.data2$connection_type = as.numeric(kdd.data2$connection_type)
 
-train.data2 = kdd.data2[3800:5000,]
+test.data2 = kdd.data2[3800:5000,]
 
-test.data2 = kdd.data2[1:3799,]
+train.data2 = kdd.data2[1:3799,]
+
+OBS = test.data2$connection_type
 
 
 ## 10-fold CV
@@ -58,19 +53,19 @@ unsmoted.roc$auc # Area under the curve : 0.9293
 plot(unsmoted.roc, main = "logistic regression ROC")
 
 
-Pred = predict(Mod_SVM, data_val[,-ncol(data_val)])
-
 unsmoted.pred = as.character(unsmoted.pred)
 unsmoted.pred[unsmoted.pred == 'good'] = 1
 unsmoted.pred[unsmoted.pred == 'bad'] = 0
 
-OBS = as.character(data_val[,ncol(data_val)])
-OBS[OBS == 'good'] = 1
-OBS[OBS == 'bad'] = 0
+Precision = (sum(unsmoted.pred == OBS))/length(unsmoted.pred)
 
-P_pred = (sum(Pred == OBS))/length(Pred)
+Rappel = 
 
-Gmean = measure_GMEAN(OBS, Pred, 1, 0)
+Gmean = measure_GMEAN(OBS, unsmoted.pred, 1, 0)
+
+FMeasure= F_Measure(Rappel,Precision)
+
+table(train.data$connection_type)
 
 
 ##### custom smoted data ####
@@ -92,13 +87,21 @@ custom.smoted.roc <- roc(predictor = custom.smoted.probs$bad, response = test.da
 custom.smoted.roc$auc # Area under the curve : 0.9286
 plot(custom.smoted.roc, main = "logistic regression ROC")
 
+custom.smoted.pred = as.character(custom.smoted.pred)
+custom.smoted.pred[custom.smoted.pred == 'good'] = 1
+custom.smoted.pred[custom.smoted.pred == 'bad'] = 0
 
+Precision_SMOTE = (sum(custom.smoted.pred == OBS))/length(custom.smoted.pred)
+
+Gmean_SMOTE = measure_GMEAN(OBS, custom.smoted.pred, 1, 0)
+
+table(custom.smote$connection_type)
 
 
 ##### Borderline-smote #####
 
 
-custom.border <- BorderLineSMOTE1(test.data2, test.data2$connection_type, K=3)
+custom.border <- BorderLineSMOTE1(train.data2, train.data2$connection_type, K=3)
 # custom.border[,"connection_type"] <- factor(custom.border[, "connection_type"],
 #                                            levels = 1:nlevels(as.factor(kdd.data[, "connection_type"])),
 #                                            labels = levels(as.factor(kdd.data[, "connection_type"])))
@@ -118,10 +121,18 @@ custom.border.probs <- predict(custom.border.fit,newdata =  test.data,
                                type = "prob")
 custom.border.roc <- roc(predictor = custom.border.probs$bad, response = test.data$connection_type,
                          levels = rev(levels(test.data$connection_type)))
-custom.border.roc$auc # Area under the curve : 0.9286
+custom.border.roc$auc
 plot(custom.border.roc, main = "logistic regression ROC")
 
+custom.border.pred = as.character(custom.border.pred)
+custom.border.pred[custom.border.pred == 'good'] = 1
+custom.border.pred[custom.border.pred == 'bad'] = 0
 
+Precision_BORDER = (sum(custom.border.pred == OBS))/length(custom.border.pred)
+
+Gmean_BORDER = measure_GMEAN(OBS, custom.border.pred, 1, 0)
+
+table(custom.border$connection_type)
 
 
 ##### ADASYN data ####
@@ -138,11 +149,19 @@ custom.adasyn.probs <- predict(custom.smoted.fit,newdata =  test.data,
                                type = "prob")
 custom.adasyn.roc <- roc(predictor = custom.adasyn.probs$bad, response = test.data$connection_type,
                          levels = rev(levels(test.data$connection_type)))
-custom.adasyn.roc$auc # Area under the curve : 0.9286
+custom.adasyn.roc$auc
 plot(custom.adasyn.roc, main = "logistic regression ROC")
 
 
+custom.adasyn.pred = as.character(custom.adasyn.pred)
+custom.adasyn.pred[custom.adasyn.pred == 'good'] = 1
+custom.adasyn.pred[custom.adasyn.pred == 'bad'] = 0
 
+Precision_ADASYN = (sum(custom.adasyn.pred == OBS))/length(custom.adasyn.pred)
+
+Gmean_ADASYN = measure_GMEAN(OBS, custom.adasyn.pred, 1, 0)
+
+table(custom.adasyn$y)
 
 
 # #### DMwR smote ####
