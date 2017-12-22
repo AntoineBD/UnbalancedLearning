@@ -1,4 +1,4 @@
-## Fichier: datasetDescription.r
+## Fichier: logisticTest.r
 ## Auteur : Eric HAMMEL
 ## Description : Comparer les implémentations de smote
 ## Date : 17 décembre 2018
@@ -115,6 +115,8 @@ FMeasure_SMOTE = F_Measure(Rappel_SMOTE,Precision_SMOTE,1)
 
 prop.table(table(custom.smote$connection_type))
 
+barplot(sort(table(custom.smote$connection_type) , decreasing = TRUE))
+
 
 ##### Borderline-smote #####
 
@@ -160,6 +162,8 @@ FMeasure_BORDER = F_Measure(Rappel_BORDER,Precision_BORDER,1)
 
 prop.table(table(custom.border$connection_type))
 
+barplot(sort(table(custom.border$connection_type) , decreasing = TRUE))
+
 
 ##### ADASYN data ####
 
@@ -196,6 +200,8 @@ Gmean_ADASYN = measure_GMEAN(OBS, custom.adasyn.pred, 1, 0)
 FMeasure_ADASYN = F_Measure(Rappel_ADASYN,Precision_ADASYN,1)
 
 prop.table(table(custom.adasyn$y))
+
+barplot(sort(table(custom.adasyn$y), decreasing = TRUE))
 
 
 # #### DMwR smote ####

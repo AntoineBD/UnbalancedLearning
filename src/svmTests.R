@@ -5,111 +5,6 @@
 ############################################################################
 ############################################################################
 
-source("src/Functions.R", local = TRUE)
-
-#### Importation de nos donnees. ####
- 
-
-data = read.table(file = "data/mydata.txt", sep=",")
-
-data_val = data[3800:5000,]
-
-data = data[1:3799,]
-
-
-#### Visualisation du desequilibre des classes. ####
-
-# barplot(sort(table(data$connection_type), decreasing = TRUE))
-# 
-# prop.table(table(data$connection_type))
-
-
-
-########################### MODELE SVM/PREDICTIONS ###########################
-
-
-
-Mod_SVM = svm(connection_type~., data = data, kernel="linear")
-
-Pred = predict(Mod_SVM, data_val[,-ncol(data_val)])
-
-
-### Matrice de confusion et pourcentage de bonnes predictions.
-
-Pred = as.character(Pred)
-Pred[Pred == 'good'] = 1
-Pred[Pred == 'bad'] = 0
-
-OBS = as.character(data_val[,ncol(data_val)])
-OBS[OBS == 'good'] = 1
-OBS[OBS == 'bad'] = 0
-
-P_pred = (sum(Pred == OBS))/length(Pred)
-
-conf_matrix = confusion.matrix(OBS, Pred, threshold = 0.5)
-
-Gmean = measure_GMEAN(OBS, Pred, 1, 0)
-
-
-############################# Avec ADASYN #############################
-
-
-P = ADASYN(data[,-ncol(data)],data[,ncol(data)],0.75,1,10)
-
-Mod_SVM = svm(connection_type~., data = data.frame(P$data,connection_type = P$y), kernel="linear")
-
-Pred = predict(Mod_SVM, data_val[,-ncol(data_val)])
-
-
-### Matrice de confusion et pourcentage de bonnes predictions.
-
-Pred = as.character(Pred)
-Pred[Pred == 'good'] = 1
-Pred[Pred == 'bad'] = 0
-
-OBS = as.character(data_val[,ncol(data_val)])
-OBS[OBS == 'good'] = 1
-OBS[OBS == 'bad'] = 0
-
-P_pred_ADASYN = (sum(Pred == OBS))/length(Pred)
-
-conf_matrix = confusion.matrix(OBS, Pred, threshold = 0.5)
-
-Gmean_ADASYN = measure_GMEAN(OBS, Pred, 1, 0)
-
-
-###################### Avec ADASYN de smotefamily #####################
-
-
-P_2 = ADAS(data[,-ncol(data)],data[,ncol(data)],K = 10)
-
-Mod_SVM = svm(class~., data = P_2$data, kernel="linear", type='C')
-
-Pred = predict(Mod_SVM, data_val[,-ncol(data_val)])
-
-
-### Matrice de confusion et pourcentage de bonnes predictions.
-
-Pred = as.character(Pred)
-Pred[Pred == 'good'] = 1
-Pred[Pred == 'bad'] = 0
-
-OBS = as.character(data_val[,ncol(data_val)])
-OBS[OBS == 'good'] = 1
-OBS[OBS == 'bad'] = 0
-
-P_pred_ADASYN_R = (sum(Pred == OBS))/length(Pred)
-
-Gmean_ADASYN_R = measure_GMEAN(OBS, Pred, 1, 0)
-
-
-
-
-
-## Fichier: datasetDescription.r
-## Auteur : Eric HAMMEL
-## Description : Comparer les implémentations de smote
-## Date : 17 décembre 2018
 
 rm(list = ls())
 
@@ -136,15 +31,6 @@ train.data2 = kdd.data2[1:3799,]
 
 OBS = test.data2$connection_type
 
-
-## 10-fold CV
-fitControl <- trainControl(
-  method = "repeatedcv",
-  number = 10,
-  ## repeated ten times
-  repeats = 10,
-  summaryFunction = twoClassSummary,
-  classProbs = TRUE)
 
 #### UNsmoted data ####
 unsmoted.model.fit <- svm( connection_type ~ ., data = train.data, kernel ='linear')
@@ -191,8 +77,7 @@ custom.smote <- smote(target = "connection_type", data = train.data)
 custom.smote[,"connection_type"] <- factor(custom.smote[, "connection_type"],
                                            levels = 1:nlevels(kdd.data[, "connection_type"]),
                                            labels = levels(kdd.data[, "connection_type"]))
-custom.smoted.fit <- train( connection_type ~ ., data = custom.smote,
-                            method = "glm", trControl = fitControl, metric = "ROC")
+custom.smoted.fit <- svm( connection_type ~ ., data = custom.smote, kernel ='linear')
 ## assessing
 custom.smoted.pred <- predict(custom.smoted.fit, newdata = test.data)
 confusionMatrix(data = custom.smoted.pred, reference = test.data$connection_type)
@@ -222,6 +107,7 @@ FMeasure_SMOTE = F_Measure(Rappel_SMOTE,Precision_SMOTE,1)
 
 prop.table(table(custom.smote$connection_type))
 
+barplot(sort(table(custom.smote$connection_type), decreasing = TRUE))
 
 ##### Borderline-smote #####
 
@@ -236,8 +122,7 @@ custom.border$connection_type[custom.border$connection_type == '1'] = 'good'
 custom.border$connection_type[custom.border$connection_type == '0'] = 'bad'
 custom.border$connection_type = as.factor(custom.border$connection_type)
 
-custom.border.fit <- train(connection_type ~ ., data = custom.border,
-                           method = "glm", trControl = fitControl, metric = "ROC")
+custom.border.fit <- svm(connection_type ~ ., data = custom.border, kernel = 'linear')
 ## assessing
 custom.border.pred <- predict(custom.border.fit, newdata = test.data2)
 confusionMatrix(data = custom.border.pred, reference = test.data$connection_type)
@@ -267,13 +152,15 @@ FMeasure_BORDER = F_Measure(Rappel_BORDER,Precision_BORDER,1)
 
 prop.table(table(custom.border$connection_type))
 
+barplot(sort(table(custom.border$connection_type), decreasing = TRUE))
+
 
 ##### ADASYN data ####
 
 custom.adasyn <- ADASYN(train.data[,-ncol(train.data)],train.data[,ncol(train.data)],0.75,1,10)
 
-custom.adasyn.fit <- train(connection_type ~ ., data = data.frame(custom.adasyn$data,connection_type = custom.adasyn$y),
-                           method = "glm", trControl = fitControl, metric = "ROC")
+custom.adasyn.fit <- svm(connection_type ~ ., data = data.frame(custom.adasyn$data,connection_type = custom.adasyn$y),
+                           kernel = 'linear')
 ## assessing
 custom.adasyn.pred <- predict(custom.adasyn.fit, newdata = test.data)
 confusionMatrix(data = custom.adasyn.pred, reference = test.data$connection_type)
@@ -303,6 +190,8 @@ Gmean_ADASYN = measure_GMEAN(OBS, custom.adasyn.pred, 1, 0)
 FMeasure_ADASYN = F_Measure(Rappel_ADASYN,Precision_ADASYN,1)
 
 prop.table(table(custom.adasyn$y))
+
+barplot(sort(table(custom.adasyn$y), decreasing = TRUE))
 
 
 # #### DMwR smote ####
@@ -338,7 +227,6 @@ prop.table(table(custom.adasyn$y))
 # #                                             lines = TRUE,
 # #                                             points = FALSE))
 # ggplot(lift_obj, values = 75)
-
 
 
 
