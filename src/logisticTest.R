@@ -57,15 +57,24 @@ unsmoted.pred = as.character(unsmoted.pred)
 unsmoted.pred[unsmoted.pred == 'good'] = 1
 unsmoted.pred[unsmoted.pred == 'bad'] = 0
 
+# confusion.matrix(OBS, unsmoted.pred ,threshold = 0.5)
+
 Precision = (sum(unsmoted.pred == OBS))/length(unsmoted.pred)
 
-Rappel = 
+FN = sum((unsmoted.pred == 0) & (OBS == 1))
+
+VP = sum((unsmoted.pred == 1) & (OBS == 1))
+
+Rappel = VP/(FN+VP)
 
 Gmean = measure_GMEAN(OBS, unsmoted.pred, 1, 0)
 
-FMeasure= F_Measure(Rappel,Precision)
+FMeasure = F_Measure(Rappel,Precision,1)
 
 table(train.data$connection_type)
+
+
+
 
 
 ##### custom smoted data ####
@@ -93,7 +102,15 @@ custom.smoted.pred[custom.smoted.pred == 'bad'] = 0
 
 Precision_SMOTE = (sum(custom.smoted.pred == OBS))/length(custom.smoted.pred)
 
+FN = sum((custom.smoted.pred == 0) & (OBS == 1))
+
+VP = sum((custom.smoted.pred == 1) & (OBS == 1))
+
+Rappel_SMOTE = VP/(FN+VP)
+
 Gmean_SMOTE = measure_GMEAN(OBS, custom.smoted.pred, 1, 0)
+
+FMeasure = F_Measure(Rappel_SMOTE,Precision_SMOTE,1)
 
 table(custom.smote$connection_type)
 
@@ -130,7 +147,15 @@ custom.border.pred[custom.border.pred == 'bad'] = 0
 
 Precision_BORDER = (sum(custom.border.pred == OBS))/length(custom.border.pred)
 
+FN = sum((custom.border.pred == 0) & (OBS == 1))
+
+VP = sum((custom.border.pred == 1) & (OBS == 1))
+
+Rappel_BORDER = VP/(FN+VP)
+
 Gmean_BORDER = measure_GMEAN(OBS, custom.border.pred, 1, 0)
+
+FMeasure = F_Measure(Rappel_BORDER,Precision_BORDER,1)
 
 table(custom.border$connection_type)
 
@@ -159,7 +184,15 @@ custom.adasyn.pred[custom.adasyn.pred == 'bad'] = 0
 
 Precision_ADASYN = (sum(custom.adasyn.pred == OBS))/length(custom.adasyn.pred)
 
+FN = sum((custom.adasyn.pred == 0) & (OBS == 1))
+
+VP = sum((custom.adasyn.pred == 1) & (OBS == 1))
+
+Rappel_ADASYN = VP/(FN+VP)
+
 Gmean_ADASYN = measure_GMEAN(OBS, custom.adasyn.pred, 1, 0)
+
+FMeasure = F_Measure(Rappel_ADASYN,Precision_ADASYN,1)
 
 table(custom.adasyn$y)
 
