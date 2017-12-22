@@ -87,7 +87,7 @@ unsmoted.roc <- roc(predictor = unsmoted.probs$bad, response = test.data$connect
                     levels = rev(levels(test.data$connection_type)))
 
 AUC = as.numeric(unsmoted.roc$auc) # Area under the curve : 0.9293
-plot(unsmoted.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA)
+plot(unsmoted.roc, main = "tree ROC", xlim = c(1,0), ylim = c(0,1), asp = NA)
 
 
 unsmoted.pred = as.character(unsmoted.pred)
@@ -130,7 +130,7 @@ custom.smoted.probs <- predict(custom.smoted.fit,newdata =  test.data,
 custom.smoted.roc <- roc(predictor = custom.smoted.probs$bad, response = test.data$connection_type,
                          levels = rev(levels(test.data$connection_type)))
 AUC_SMOTE = as.numeric(custom.smoted.roc$auc) # Area under the curve : 0.9286
-plot(custom.smoted.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col ='blue')
+plot(custom.smoted.roc, main = "tree ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col ='blue')
 
 custom.smoted.pred = as.character(custom.smoted.pred)
 custom.smoted.pred[custom.smoted.pred == 'good'] = 1
@@ -175,7 +175,7 @@ custom.border.probs <- predict(custom.border.fit,newdata =  test.data,
 custom.border.roc <- roc(predictor = custom.border.probs$bad, response = test.data$connection_type,
                          levels = rev(levels(test.data$connection_type)))
 AUC_BORDER = as.numeric(custom.border.roc$auc)
-plot(custom.border.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col='red')
+plot(custom.border.roc, main = "tree ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col='red')
 
 custom.border.pred = as.character(custom.border.pred)
 custom.border.pred[custom.border.pred == 'good'] = 1
@@ -207,12 +207,12 @@ custom.adasyn.fit <- tree(connection_type ~ ., data = data.frame(custom.adasyn$d
 custom.adasyn.pred <- predict(custom.adasyn.fit, newdata = test.data)
 confusionMatrix(data = custom.adasyn.pred, reference = test.data$connection_type)
 ## ROC curve
-custom.adasyn.probs <- predict(custom.smoted.fit,newdata =  test.data,
+custom.adasyn.probs <- predict(custom.adasyn.fit,newdata =  test.data,
                                type = "prob")
 custom.adasyn.roc <- roc(predictor = custom.adasyn.probs$bad, response = test.data$connection_type,
                          levels = rev(levels(test.data$connection_type)))
 AUC_ADASYN = as.numeric(custom.adasyn.roc$auc)
-plot(custom.adasyn.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col = 'green')
+plot(custom.adasyn.roc, main = "tree ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col = 'green')
 
 
 custom.adasyn.pred = as.character(custom.adasyn.pred)

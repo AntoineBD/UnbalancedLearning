@@ -175,7 +175,7 @@ custom.adasyn.fit <- train(connection_type ~ ., data = data.frame(custom.adasyn$
 custom.adasyn.pred <- predict(custom.adasyn.fit, newdata = test.data)
 confusionMatrix(data = custom.adasyn.pred, reference = test.data$connection_type)
 ## ROC curve
-custom.adasyn.probs <- predict(custom.smoted.fit,newdata =  test.data,
+custom.adasyn.probs <- predict(custom.adasyn.fit,newdata =  test.data,
                                type = "prob")
 custom.adasyn.roc <- roc(predictor = custom.adasyn.probs$bad, response = test.data$connection_type,
                          levels = rev(levels(test.data$connection_type)))
