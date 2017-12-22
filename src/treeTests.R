@@ -20,8 +20,8 @@ data_val = data[3800:5000,]
 data = data[1:3799,]
 
 #### Visualisation du desequilibre des classes. ####
-barplot(sort(table(data$connection_type), decreasing = TRUE))
-prop.table(table(data$connection_type))
+# barplot(sort(table(data$connection_type), decreasing = TRUE))
+# prop.table(table(data$connection_type))
 
 ########################## MODELE TREE/PREDICTIONS ##########################
 
