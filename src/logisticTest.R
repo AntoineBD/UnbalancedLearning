@@ -49,8 +49,9 @@ unsmoted.probs <- predict(unsmoted.model.fit,newdata =  test.data,
                           type = "prob")
 unsmoted.roc <- roc(predictor = unsmoted.probs$bad, response = test.data$connection_type,
                     levels = rev(levels(test.data$connection_type)))
-unsmoted.roc$auc # Area under the curve : 0.9293
-plot(unsmoted.roc, main = "logistic regression ROC")
+
+AUC = as.numeric(unsmoted.roc$auc) # Area under the curve : 0.9293
+plot(unsmoted.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA)
 
 
 unsmoted.pred = as.character(unsmoted.pred)
@@ -71,7 +72,7 @@ Gmean = measure_GMEAN(OBS, unsmoted.pred, 1, 0)
 
 FMeasure = F_Measure(Rappel,Precision,1)
 
-table(train.data$connection_type)
+prop.table(table(train.data$connection_type))
 
 
 
@@ -93,8 +94,8 @@ custom.smoted.probs <- predict(custom.smoted.fit,newdata =  test.data,
                           type = "prob")
 custom.smoted.roc <- roc(predictor = custom.smoted.probs$bad, response = test.data$connection_type,
                          levels = rev(levels(test.data$connection_type)))
-custom.smoted.roc$auc # Area under the curve : 0.9286
-plot(custom.smoted.roc, main = "logistic regression ROC")
+AUC_SMOTE = as.numeric(custom.smoted.roc$auc) # Area under the curve : 0.9286
+plot(custom.smoted.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col ='blue')
 
 custom.smoted.pred = as.character(custom.smoted.pred)
 custom.smoted.pred[custom.smoted.pred == 'good'] = 1
@@ -102,17 +103,17 @@ custom.smoted.pred[custom.smoted.pred == 'bad'] = 0
 
 Precision_SMOTE = (sum(custom.smoted.pred == OBS))/length(custom.smoted.pred)
 
-FN = sum((custom.smoted.pred == 0) & (OBS == 1))
+FN_S = sum((custom.smoted.pred == 0) & (OBS == 1))
 
-VP = sum((custom.smoted.pred == 1) & (OBS == 1))
+VP_S = sum((custom.smoted.pred == 1) & (OBS == 1))
 
-Rappel_SMOTE = VP/(FN+VP)
+Rappel_SMOTE = VP_S/(FN_S+VP_S)
 
 Gmean_SMOTE = measure_GMEAN(OBS, custom.smoted.pred, 1, 0)
 
-FMeasure = F_Measure(Rappel_SMOTE,Precision_SMOTE,1)
+FMeasure_SMOTE = F_Measure(Rappel_SMOTE,Precision_SMOTE,1)
 
-table(custom.smote$connection_type)
+prop.table(table(custom.smote$connection_type))
 
 
 ##### Borderline-smote #####
@@ -138,8 +139,8 @@ custom.border.probs <- predict(custom.border.fit,newdata =  test.data,
                                type = "prob")
 custom.border.roc <- roc(predictor = custom.border.probs$bad, response = test.data$connection_type,
                          levels = rev(levels(test.data$connection_type)))
-custom.border.roc$auc
-plot(custom.border.roc, main = "logistic regression ROC")
+AUC_BORDER = as.numeric(custom.border.roc$auc)
+plot(custom.border.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col='red')
 
 custom.border.pred = as.character(custom.border.pred)
 custom.border.pred[custom.border.pred == 'good'] = 1
@@ -147,17 +148,17 @@ custom.border.pred[custom.border.pred == 'bad'] = 0
 
 Precision_BORDER = (sum(custom.border.pred == OBS))/length(custom.border.pred)
 
-FN = sum((custom.border.pred == 0) & (OBS == 1))
+FN_B = sum((custom.border.pred == 0) & (OBS == 1))
 
-VP = sum((custom.border.pred == 1) & (OBS == 1))
+VP_B = sum((custom.border.pred == 1) & (OBS == 1))
 
-Rappel_BORDER = VP/(FN+VP)
+Rappel_BORDER = VP_B/(FN_B+VP_B)
 
 Gmean_BORDER = measure_GMEAN(OBS, custom.border.pred, 1, 0)
 
-FMeasure = F_Measure(Rappel_BORDER,Precision_BORDER,1)
+FMeasure_BORDER = F_Measure(Rappel_BORDER,Precision_BORDER,1)
 
-table(custom.border$connection_type)
+prop.table(table(custom.border$connection_type))
 
 
 ##### ADASYN data ####
@@ -174,8 +175,8 @@ custom.adasyn.probs <- predict(custom.smoted.fit,newdata =  test.data,
                                type = "prob")
 custom.adasyn.roc <- roc(predictor = custom.adasyn.probs$bad, response = test.data$connection_type,
                          levels = rev(levels(test.data$connection_type)))
-custom.adasyn.roc$auc
-plot(custom.adasyn.roc, main = "logistic regression ROC")
+AUC_ADASYN = as.numeric(custom.adasyn.roc$auc)
+plot(custom.adasyn.roc, main = "logistic regression ROC", xlim = c(1,0), ylim = c(0,1), asp = NA, col = 'green')
 
 
 custom.adasyn.pred = as.character(custom.adasyn.pred)
@@ -184,17 +185,17 @@ custom.adasyn.pred[custom.adasyn.pred == 'bad'] = 0
 
 Precision_ADASYN = (sum(custom.adasyn.pred == OBS))/length(custom.adasyn.pred)
 
-FN = sum((custom.adasyn.pred == 0) & (OBS == 1))
+FN_AD = sum((custom.adasyn.pred == 0) & (OBS == 1))
 
-VP = sum((custom.adasyn.pred == 1) & (OBS == 1))
+VP_AD = sum((custom.adasyn.pred == 1) & (OBS == 1))
 
-Rappel_ADASYN = VP/(FN+VP)
+Rappel_ADASYN = VP_AD/(FN_AD+VP_AD)
 
 Gmean_ADASYN = measure_GMEAN(OBS, custom.adasyn.pred, 1, 0)
 
-FMeasure = F_Measure(Rappel_ADASYN,Precision_ADASYN,1)
+FMeasure_ADASYN = F_Measure(Rappel_ADASYN,Precision_ADASYN,1)
 
-table(custom.adasyn$y)
+prop.table(table(custom.adasyn$y))
 
 
 # #### DMwR smote ####
