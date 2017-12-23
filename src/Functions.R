@@ -174,13 +174,39 @@ ADASYN = function(data, var_pred, d_th, beta, K){
     
     ind_knn = matrix(0,ms,K)
     
-    for( i in 1:ms){
+    # Delta.ind_knn = function(x){
+    #     u = knn.index.dist(data, Obs_classe_min[x,],  k = K,
+    #                                   transf_categ_cols = FALSE)$test_knn_idx
+    #     ind_knn = u
+    #     
+    #     Delta = apply(ind_knn, 1, function(y) sum(y %in% ind_classe_maj))
+    # 
+    #     return(c(ind_knn,Delta))
+    # }
+    # 
+    # Res = sapply(1:ms, Delta.ind_knn)
+    # 
+    # ind_knn = t(Res[-nrow(Res),])
+    # 
+    # Delta = Res[nrow(Res),]
+    
+    ind_knn_fct =  function(x){
+      ind_knn = knn.index.dist(data, Obs_classe_min[x,],  k = K,
+                               transf_categ_cols = FALSE)$test_knn_idx
       
-      ind_knn[i,] = knn.index.dist(data, Obs_classe_min[i,],  k = K,
-                                   transf_categ_cols = FALSE)$test_knn_idx
-      
-      Delta[i] = sum(ind_knn[i,] %in% ind_classe_maj)
+      return(ind_knn)
     }
+    
+    Delta_fct =  function(x){
+      
+      Delta = sum(ind_knn[x,] %in% ind_classe_maj)
+      
+      return(Delta)
+    }
+    
+    ind_knn = t(sapply(1:ms, ind_knn_fct))
+    
+    Delta = sapply(1:ms, Delta_fct)
     
     R = Delta / K
     
@@ -214,6 +240,8 @@ ADASYN = function(data, var_pred, d_th, beta, K){
         }
       }
     }
+    
+    
     
     data = rbind(data,S)
     var_pred = as.character(var_pred)
